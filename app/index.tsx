@@ -3,6 +3,8 @@ import { StyleSheet, View, Image, Dimensions, Text, Animated } from 'react-nativ
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import * as Location from 'expo-location';
 import LocationBottomSheet from '@/components/bottomsheet/LocationBottomSheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // Reduced delta values for closer zoom
 const ASPECT_RATIO = Dimensions.get('window').width / Dimensions.get('window').height;
@@ -224,63 +226,67 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-    <MapView
-      ref={mapRef}
-      style={styles.map}
-      provider={PROVIDER_DEFAULT}
-      customMapStyle={mapStyle}
-      initialRegion={{
-        latitude: location?.coords?.latitude || 14.5995,
-        longitude: location?.coords?.longitude || 120.9842,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      }}
-      showsUserLocation={true}
-      showsMyLocationButton={true}
-      showsCompass={false}
-      rotateEnabled={true}
-    >
-      {tricycleLocations.map((tricycle) => (
-        <Marker
-          key={tricycle.id}
-          coordinate={tricycle.coordinate}
-          onPress={() => onMarkerPress(tricycle)}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+    <BottomSheetModalProvider>
+      <View style={styles.container}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          provider={PROVIDER_DEFAULT}
+          customMapStyle={mapStyle}
+          initialRegion={{
+            latitude: location?.coords?.latitude || 14.5995,
+            longitude: location?.coords?.longitude || 120.9842,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          }}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+          showsCompass={false}
+          rotateEnabled={true}
         >
-          <CustomMarker
-            tricycle={tricycle}
-            scale={markerAnimation.interpolate({
-              inputRange: [0, 1],
-              outputRange: [1, 1.2],
-            })}
-          />
-        </Marker>
-      ))}
-    </MapView>
+          {tricycleLocations.map((tricycle) => (
+            <Marker
+              key={tricycle.id}
+              coordinate={tricycle.coordinate}
+              onPress={() => onMarkerPress(tricycle)}
+            >
+              <CustomMarker
+                tricycle={tricycle}
+                scale={markerAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 1.2],
+                })}
+              />
+            </Marker>
+          ))}
+        </MapView>
 
-    {selectedTricycle ? (
-      <View style={styles.tricycleInfo}>
-        <Image
-          source={require('@/assets/images/tri.jpg')}
-          style={styles.driverImage}
-        />
-        <View style={styles.infoContent}>
-          <Text style={styles.driverName}>{selectedTricycle.driver}</Text>
-          <Text style={styles.rating}>⭐ {selectedTricycle.rating}</Text>
-          <Text style={styles.distance}>
-            {getApproximateDistance(selectedTricycle.coordinate)}
-          </Text>
-          <Text style={styles.eta}>{selectedTricycle.eta}</Text>
-          <Text style={styles.price}>{selectedTricycle.price}</Text>
-        </View>
+        {selectedTricycle ? (
+          <View style={styles.tricycleInfo}>
+            <Image
+              source={require('@/assets/images/tri.jpg')}
+              style={styles.driverImage}
+            />
+            <View style={styles.infoContent}>
+              <Text style={styles.driverName}>{selectedTricycle.driver}</Text>
+              <Text style={styles.rating}>⭐ {selectedTricycle.rating}</Text>
+              <Text style={styles.distance}>
+                {getApproximateDistance(selectedTricycle.coordinate)}
+              </Text>
+              <Text style={styles.eta}>{selectedTricycle.eta}</Text>
+              <Text style={styles.price}>{selectedTricycle.price}</Text>
+            </View>
+          </View>
+        ) : (
+          <LocationBottomSheet
+            location={location}
+            errorMsg={errorMsg}
+          />
+        )}
       </View>
-    ) : (
-      <LocationBottomSheet
-        location={location}
-        errorMsg={errorMsg}
-      />
-    )}
-  </View>
+    </BottomSheetModalProvider>
+  </GestureHandlerRootView>
   );
 }
 
